@@ -1,5 +1,7 @@
 package com.codewalla.sms;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -14,7 +16,8 @@ public class StudentController {
 
     //ADD a Student
     @PostMapping("/add_student")
-    public String addStudent(@RequestBody() Student student){
+
+    public ResponseEntity<String> addStudent(@RequestBody() Student student){
 
         //Add it to our DB
 
@@ -23,62 +26,71 @@ public class StudentController {
         //add it tu student db
         studentDb.put(key,student);
 
-        return "Student added successfully.";
+        return new ResponseEntity<>("Student added successfully.", HttpStatus.ACCEPTED);
     }
 
 
     //GET a Student
     @GetMapping("/get_student_by_id")
-    public Student getStudentById(@RequestParam("id") Integer id){
+    public ResponseEntity<Student> getStudentById(@RequestParam("id") Integer id){
 
-        return studentDb.get(id);
+        if(studentDb.containsKey(id)) {
+            return new ResponseEntity<>(studentDb.get(id), HttpStatus.FOUND);
+        }
+        else{
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
     }
 
     //GET a student by name
     @GetMapping("/get_student_by_name")
-    public Student getStudentByName(@RequestParam("name") String searchName){
+    public ResponseEntity<Student> getStudentByName(@RequestParam("name") String searchName){
 
         //iterating over hashmap= DB
         for(Student s: studentDb.values()){
             if(s.getName().equals(searchName)){
-                return s;
+                return new ResponseEntity<>(s,HttpStatus.FOUND);
             }
         }
         //if not found in DB
-        return null;
+        return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
     }
 
     //Get student by path variable
     @GetMapping("/get_by_path_variable/{id}")
-    public Student getByPathVariable(@PathVariable("id") Integer id){
+    public ResponseEntity<Student> getByPathVariable(@PathVariable("id") Integer id){
 
-        Student student=studentDb.get(id);
-        return student;
+        if(studentDb.containsKey(id)) {
+            return new ResponseEntity<>(studentDb.get(id), HttpStatus.FOUND);
+        }
+        else{
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
     }
 
 
     //UPDATE a Student
     @PutMapping("/update_student")
-    public String updateStudent(@RequestBody() Student student){
+    public ResponseEntity<String> updateStudent(@RequestBody() Student student){
 
         int key=student.getId();
 
         studentDb.put(key,student);
 
-        return "Updated successfully.";
+        return new ResponseEntity<>("Updated successfully.",HttpStatus.OK);
     }
 
 
     //DELETE a Student
     @DeleteMapping("/delete_student")
-    public String deleteStudent(@RequestParam("id") Integer id){
+    public ResponseEntity<String> deleteStudent(@RequestParam("id") Integer id){
 
         for(int i: studentDb.keySet()){
             if(i==id){
                 studentDb.remove(i);
-                return "Student deleted successfully.";
+                return new ResponseEntity<>("Student deleted successfully.",HttpStatus.OK);
             }
         }
-        return "Student not found.";
+        return new ResponseEntity<>("Student not found.",HttpStatus.NOT_FOUND);
     }
 }
